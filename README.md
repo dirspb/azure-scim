@@ -1,3 +1,88 @@
+This repo intended to create SCIM librabry compartible with Azure pseudo-SCIM implementation.
+You need to create two WS for that: /User and /Group
+```java
+import com.unboundid.scim2.common.ScimResource;
+import com.unboundid.scim2.common.exceptions.ScimException;
+import com.unboundid.scim2.common.messages.PatchRequest;
+import com.unboundid.scim2.common.types.UserResource;
+import com.unboundid.scim2.server.annotations.ResourceType;
+import com.unboundid.scim2.server.PATCH;
+
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriInfo;
+
+import static com.unboundid.scim2.common.utils.ApiConstants.MEDIA_TYPE_SCIM;
+
+@ResourceType(
+    description = "User Account",
+    name = "User",
+    schema = UserResource.class)
+@Path("/Users")
+public interface ScimUsersEndpoint {
+
+    /**
+     * Retrieve user by ID.
+     */
+    @Path("{id}")
+    @GET
+    @Produces({MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON})
+    Object retrieve(@PathParam("id") final String id, @Context final UriInfo uriInfo) throws ScimException;
+
+    /**
+     * Search users using filter query.
+     */
+    @GET
+    @Consumes({MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON})
+    @Produces({MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON})
+    Object filter(@QueryParam("filter") final String filter, @Context final UriInfo uriInfo) throws ScimException;
+
+    /**
+     * Create a new user.
+     */
+    @POST
+    @Consumes({MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON})
+    @Produces({MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON})
+    ScimResource create(final UserResource resource, @Context final UriInfo uriInfo,
+                        @Context final HttpServletResponse response) throws ScimException;
+
+    /**
+     * Replace some user attribute.
+     */
+    @Path("{id}")
+    @PUT
+    @Consumes({MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON})
+    @Produces({MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON})
+    ScimResource replace(@PathParam("id") final String id,
+                                final UserResource resource,
+                                @Context final UriInfo uriInfo) throws ScimException;
+
+    /**
+     * Modify some user attribute.
+     * Request contains list of operations.
+     * <b>Warning!<b> Azure requests incompartible with SCIM protocol and need to use {@link AzurePatchRequest}.
+     */
+    @Path("{id}")
+    @PATCH
+    @Consumes({MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON})
+    @Produces({MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON})
+    ScimResource modify(@PathParam("id") final String id, final AzurePatchRequest patchRequest,
+                        @Context final UriInfo uriInfo) throws ScimException;
+}
+```
+
+
+All following info is related to the parent repo, not this one:
+
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.unboundid.product.scim2/scim2-parent/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.unboundid.product.scim2/scim2-parent)
 [![Javadocs](http://javadoc.io/badge/com.unboundid.product.scim2/scim2-parent.svg)](http://javadoc.io/doc/com.unboundid.product.scim2/scim2-parent) 
 [![Build Status](https://travis-ci.org/pingidentity/scim2.svg?branch=master)](https://travis-ci.org/pingidentity/scim2)
